@@ -1,0 +1,16 @@
+[
+  {
+    "plateNumber": "CG07CD7866",
+    "status": "Flagged",
+    "reason": "Crime Investigation",
+    "addedAt": "2025-01-01T00:00:00.000Z",
+    "addedBy": "system"
+  },
+  {
+    "plateNumber": "GJ77GG3456",
+    "status": "Flagged",
+    "reason": "Crime Investigation",
+    "addedAt": "2025-01-01T00:00:00.000Z",
+    "addedBy": "system"
+  }
+]

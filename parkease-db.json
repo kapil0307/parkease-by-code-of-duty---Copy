@@ -1,0 +1,229 @@
+{
+  "stations": [
+    {
+      "id": 1,
+      "station_name": "Shankar Nagar Smart Parking",
+      "city": "Raipur",
+      "address": "Shankar Nagar Square, Sector-1, Raipur – 492007",
+      "latitude": 21.25269,
+      "longitude": 81.66788,
+      "total_slots": 30,
+      "available_slots": 18,
+      "price_per_hour": 40,
+      "rating": 4.6,
+      "amenities": [
+        "CCTV",
+        "EV Charging",
+        "Covered",
+        "24/7"
+      ],
+      "gradient": "linear-gradient(135deg, #1e3a8a, #2563eb)"
+    },
+    {
+      "id": 2,
+      "station_name": "Telibandha Parking Hub",
+      "city": "Raipur",
+      "address": "Telibandha Talab Road, Raipur – 492001",
+      "latitude": 21.24136,
+      "longitude": 81.66309,
+      "total_slots": 20,
+      "available_slots": 8,
+      "price_per_hour": 30,
+      "rating": 4.3,
+      "amenities": [
+        "CCTV",
+        "Open Air",
+        "24x7",
+        "Restrooms"
+      ],
+      "gradient": "linear-gradient(135deg, #065f46, #059669)"
+    },
+    {
+      "id": 3,
+      "station_name": "Pandri Multi-Level Parking",
+      "city": "Raipur",
+      "address": "Near City Centre Mall, Pandri, Raipur – 492001",
+      "latitude": 21.2547,
+      "longitude": 81.64871,
+      "total_slots": 50,
+      "available_slots": 32,
+      "price_per_hour": 50,
+      "rating": 4.8,
+      "amenities": [
+        "CCTV",
+        "Multi-Level",
+        "Valet",
+        "Covered"
+      ],
+      "gradient": "linear-gradient(135deg, #4c1d95, #7c3aed)"
+    },
+    {
+      "id": 4,
+      "station_name": "GE Road Parking Complex",
+      "city": "Raipur",
+      "address": "GE Road, Near New Bus Stand, Raipur – 492009",
+      "latitude": 21.228,
+      "longitude": 81.633,
+      "total_slots": 25,
+      "available_slots": 10,
+      "price_per_hour": 25,
+      "rating": 4.1,
+      "amenities": [
+        "CCTV",
+        "Security",
+        "Open Air"
+      ],
+      "gradient": "linear-gradient(135deg, #0c4a6e, #0284c7)"
+    },
+    {
+      "id": 5,
+      "station_name": "Durg Station Parking",
+      "city": "Durg",
+      "address": "Railway Colony, Near Durg Junction, Durg – 491001",
+      "latitude": 21.19972,
+      "longitude": 81.29167,
+      "total_slots": 30,
+      "available_slots": 15,
+      "price_per_hour": 30,
+      "rating": 4.2,
+      "amenities": [
+        "CCTV",
+        "Covered",
+        "24/7",
+        "Restrooms"
+      ],
+      "gradient": "linear-gradient(135deg, #7c2d12, #ea580c)"
+    },
+    {
+      "id": 6,
+      "station_name": "Nehru Nagar Parking Zone",
+      "city": "Durg",
+      "address": "Nehru Nagar, Durg – 491001",
+      "latitude": 21.198,
+      "longitude": 81.283,
+      "total_slots": 18,
+      "available_slots": 6,
+      "price_per_hour": 25,
+      "rating": 4,
+      "amenities": [
+        "CCTV",
+        "Open Air",
+        "Security"
+      ],
+      "gradient": "linear-gradient(135deg, #854d0e, #ca8a04)"
+    },
+    {
+      "id": 7,
+      "station_name": "Durg City Center Parking",
+      "city": "Durg",
+      "address": "Durga Chowk, City Centre, Durg – 491001",
+      "latitude": 21.1872,
+      "longitude": 81.285,
+      "total_slots": 22,
+      "available_slots": 12,
+      "price_per_hour": 35,
+      "rating": 4.4,
+      "amenities": [
+        "CCTV",
+        "EV Charging",
+        "Covered",
+        "Security"
+      ],
+      "gradient": "linear-gradient(135deg, #dc2626, #b91c1c)"
+    },
+    {
+      "id": 8,
+      "station_name": "Bhilai Steel City Parking",
+      "city": "Bhilai",
+      "address": "Sector-1 Market Area, Bhilai – 490001",
+      "latitude": 21.2213,
+      "longitude": 81.3828,
+      "total_slots": 40,
+      "available_slots": 22,
+      "price_per_hour": 35,
+      "rating": 4.5,
+      "amenities": [
+        "CCTV",
+        "Covered",
+        "24/7",
+        "EV Charging"
+      ],
+      "gradient": "linear-gradient(135deg, #1e40af, #1d4ed8)"
+    },
+    {
+      "id": 9,
+      "station_name": "Supela Parking Complex",
+      "city": "Bhilai",
+      "address": "Supela Chowk, Bhilai – 490023",
+      "latitude": 21.2143,
+      "longitude": 81.4012,
+      "total_slots": 24,
+      "available_slots": 9,
+      "price_per_hour": 30,
+      "rating": 4.3,
+      "amenities": [
+        "CCTV",
+        "Open Air",
+        "Security"
+      ],
+      "gradient": "linear-gradient(135deg, #0f766e, #0d9488)"
+    },
+    {
+      "id": 10,
+      "station_name": "BSP Township Parking",
+      "city": "Bhilai",
+      "address": "Civic Centre, BSP Township, Bhilai – 490021",
+      "latitude": 21.195,
+      "longitude": 81.378,
+      "total_slots": 35,
+      "available_slots": 20,
+      "price_per_hour": 45,
+      "rating": 4.7,
+      "amenities": [
+        "CCTV",
+        "Multi-Level",
+        "Valet",
+        "Covered",
+        "Car Wash"
+      ],
+      "gradient": "linear-gradient(135deg, #581c87, #7e22ce)"
+    },
+    {
+      "id": 11,
+      "station_name": "Rajnandgaon Central Parking",
+      "city": "Rajnandgaon",
+      "address": "Gandhi Chowk, Rajnandgaon – 491441",
+      "latitude": 21.0971,
+      "longitude": 81.03022,
+      "total_slots": 20,
+      "available_slots": 11,
+      "price_per_hour": 20,
+      "rating": 4,
+      "amenities": [
+        "CCTV",
+        "Open Air",
+        "Security"
+      ],
+      "gradient": "linear-gradient(135deg, #065f46, #047857)"
+    },
+    {
+      "id": 12,
+      "station_name": "Amgaon Road Parking",
+      "city": "Rajnandgaon",
+      "address": "Amgaon Road, Rajnandgaon – 491441",
+      "latitude": 21.1058,
+      "longitude": 81.0375,
+      "total_slots": 15,
+      "available_slots": 7,
+      "price_per_hour": 25,
+      "rating": 4.2,
+      "amenities": [
+        "CCTV",
+        "Covered",
+        "Restrooms"
+      ],
+      "gradient": "linear-gradient(135deg, #92400e, #b45309)"
+    }
+  ],
+  "bookings": []
+}

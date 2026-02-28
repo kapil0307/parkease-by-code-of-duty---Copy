@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ParkEase — Owner Portal</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #eff6ff;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.05);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,.12);
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    #root { min-height: 100vh; }
+
+    /* ── Auth Layout ── */
+    .auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%); position: relative; overflow: hidden; }
+    .auth-wrap::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+    .auth-card { background: var(--card); border-radius: 20px; box-shadow: var(--shadow-lg); padding: 40px; width: 100%; max-width: 480px; position: relative; z-index: 1; animation: fadeUp .4s ease; }
+    .auth-card.wide { max-width: 600px; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .auth-logo { text-align: center; margin-bottom: 28px; }
+    .auth-logo-icon { width: 60px; height: 60px; background: linear-gradient(135deg, #1e3a8a, #2563eb); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 28px; }
+    .auth-logo h1 { font-size: 26px; font-weight: 800; color: var(--text); }
+    .auth-logo p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    .auth-badge { display: inline-block; background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: .5px; margin-top: 6px; }
+
+    /* ── Form ── */
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .form-label span.req { color: var(--danger); margin-left: 3px; }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; color: var(--text); background: white; transition: border-color .2s, box-shadow .2s; outline: none; font-family: inherit; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+    .form-textarea { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media(max-width:500px) { .form-row { grid-template-columns: 1fr; } }
+    .form-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── Upload Box ── */
+    .upload-box { border: 2px dashed var(--border); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all .2s; background: var(--bg); position: relative; overflow: hidden; }
+    .upload-box:hover { border-color: var(--primary); background: var(--primary-light); }
+    .upload-box.has-file { border-color: var(--success); background: #f0fdf4; }
+    .upload-box input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .upload-icon { font-size: 28px; margin-bottom: 6px; }
+    .upload-box p { font-size: 13px; color: var(--text-muted); }
+    .upload-box .file-name { font-size: 12px; color: var(--success); font-weight: 600; margin-top: 4px; }
+
+    /* ── Buttons ── */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all .2s; font-family: inherit; }
+    .btn:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-primary { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; }
+    .btn-primary:hover:not(:disabled) { background: linear-gradient(135deg, #1d4ed8, #3b82f6); box-shadow: 0 4px 12px rgba(37,99,235,.35); transform: translateY(-1px); }
+    .btn-secondary { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { background: var(--border); }
+    .btn-success { background: linear-gradient(135deg, #065f46, #059669); color: white; }
+    .btn-success:hover:not(:disabled) { box-shadow: 0 4px 12px rgba(5,150,105,.35); transform: translateY(-1px); }
+    .btn-danger { background: linear-gradient(135deg, #991b1b, #dc2626); color: white; }
+    .btn-danger:hover:not(:disabled) { box-shadow: 0 4px 12px rgba(220,38,38,.3); transform: translateY(-1px); }
+    .btn-warning { background: linear-gradient(135deg, #92400e, #d97706); color: white; }
+    .btn-lg { padding: 13px 24px; font-size: 15px; width: 100%; }
+    .btn-sm { padding: 7px 14px; font-size: 12px; }
+
+    /* ── Spinner ── */
+    .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── App Shell ── */
+    .shell { display: flex; min-height: 100vh; }
+    .sidebar { width: 240px; background: linear-gradient(180deg, #0f172a 0%, #1e3a8a 100%); display: flex; flex-direction: column; padding: 0; flex-shrink: 0; }
+    .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .sidebar-logo .logo-icon { width: 44px; height: 44px; background: rgba(255,255,255,.12); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 10px; }
+    .sidebar-logo h2 { color: white; font-size: 16px; font-weight: 800; }
+    .sidebar-logo p { color: rgba(255,255,255,.5); font-size: 11px; margin-top: 2px; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; }
+    .nav-section-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: 1.2px; padding: 0 8px; margin: 12px 0 6px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; color: rgba(255,255,255,.65); font-size: 13.5px; font-weight: 500; margin-bottom: 2px; }
+    .nav-item:hover { background: rgba(255,255,255,.08); color: white; }
+    .nav-item.active { background: rgba(255,255,255,.15); color: white; font-weight: 600; }
+    .nav-item .nav-icon { font-size: 16px; width: 22px; text-align: center; }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,.08); }
+    .owner-info { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,.06); }
+    .owner-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #2563eb, #7c3aed); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+    .owner-name { font-size: 13px; font-weight: 600; color: white; }
+    .owner-role { font-size: 11px; color: rgba(255,255,255,.45); }
+
+    /* ── Main Content ── */
+    .main { flex: 1; overflow-y: auto; }
+    .topbar { background: white; border-bottom: 1px solid var(--border); padding: 0 28px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .topbar-title { font-size: 18px; font-weight: 700; color: var(--text); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .content-area { padding: 28px; }
+
+    /* ── Cards ── */
+    .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; border: 1px solid var(--border); }
+    .card-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .card-sub { font-size: 13px; color: var(--text-muted); }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--card); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; }
+    .stat-icon { font-size: 24px; }
+    .stat-value { font-size: 26px; font-weight: 800; color: var(--text); }
+    .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+    /* ── Status Badges ── */
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-approved { background: #d1fae5; color: #065f46; }
+    .badge-rejected { background: #fee2e2; color: #991b1b; }
+    .badge-scheduled { background: #dbeafe; color: #1e40af; }
+    .badge-live { background: #d1fae5; color: #065f46; }
+    .badge-installation { background: #ede9fe; color: #5b21b6; }
+    .badge-review { background: #fef3c7; color: #92400e; }
+
+    /* ── KYC Banner ── */
+    .kyc-banner { padding: 16px 20px; border-radius: 12px; display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+    .kyc-banner.pending { background: #fef3c7; border: 1px solid #fcd34d; }
+    .kyc-banner.approved { background: #d1fae5; border: 1px solid #6ee7b7; }
+    .kyc-banner.rejected { background: #fee2e2; border: 1px solid #fca5a5; }
+    .kyc-banner-icon { font-size: 28px; }
+    .kyc-banner-text h3 { font-size: 15px; font-weight: 700; }
+    .kyc-banner-text p { font-size: 13px; margin-top: 3px; opacity: .8; }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: var(--bg); padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); }
+    td { padding: 14px 16px; font-size: 13.5px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg); }
+
+    /* ── Progress Steps ── */
+    .steps { display: flex; align-items: center; margin-bottom: 32px; }
+    .step { display: flex; align-items: center; flex: 1; }
+    .step:last-child { flex: 0; }
+    .step-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+    .step-circle.done { background: var(--success); color: white; }
+    .step-circle.active { background: var(--primary); color: white; box-shadow: 0 0 0 4px rgba(37,99,235,.2); }
+    .step-circle.todo { background: var(--border); color: var(--text-muted); }
+    .step-line { flex: 1; height: 2px; background: var(--border); margin: 0 8px; }
+    .step-line.done { background: var(--success); }
+    .step-label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-top: 6px; text-align: center; }
+    .step-wrapper { display: flex; flex-direction: column; align-items: center; }
+
+    /* ── Toast ── */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast { padding: 12px 18px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: white; box-shadow: var(--shadow-lg); animation: slideIn .3s ease; max-width: 320px; }
+    .toast.success { background: linear-gradient(135deg, #065f46, #059669); }
+    .toast.error { background: linear-gradient(135deg, #991b1b, #dc2626); }
+    .toast.info { background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+    @keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+
+    /* ── Modal ── */
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal { background: white; border-radius: 16px; padding: 28px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; animation: fadeUp .3s ease; }
+    .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .modal p.sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+    /* ── Notification ── */
+    .notif { display: flex; gap: 12px; padding: 12px 16px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 8px; }
+    .notif-icon { font-size: 20px; flex-shrink: 0; }
+    .notif-text { font-size: 13px; }
+    .notif-text strong { display: block; font-weight: 600; color: var(--text); }
+    .notif-text span { color: var(--text-muted); font-size: 12px; }
+
+    /* ── Quick Login Box ── */
+    .quick-login-box { margin-top: 16px; padding: 14px 16px; background: var(--bg); border-radius: 10px; border: 1px solid var(--border); }
+    .quick-login-box p { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+    .quick-login-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ── Divider ── */
+    .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .divider span { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+    /* ── Empty State ── */
+    .empty { text-align: center; padding: 48px 24px; color: var(--text-muted); }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .empty p { font-size: 13px; }
+
+    /* ── Grid ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media(max-width:768px) { .sidebar { display: none; } .grid-2 { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* ── Property Card ── */
+    .prop-card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
+    .prop-card-header { padding: 18px 20px 0; }
+    .prop-card-body { padding: 12px 20px 18px; }
+    .prop-card-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .prop-card-addr { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+    .prop-meta { display: flex; gap: 14px; flex-wrap: wrap; }
+    .prop-meta-item { font-size: 12px; color: var(--text-muted); }
+    .prop-meta-item strong { color: var(--text); font-weight: 600; display: block; font-size: 13px; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ─────────────────────────────────────────────
+// LOCAL STORAGE DB
+// ─────────────────────────────────────────────
+const ODB = {
+  get: (k, def = null) => { try { const v = localStorage.getItem('pe_owner_' + k); return v ? JSON.parse(v) : def; } catch { return def; } },
+  set: (k, v) => { try { localStorage.setItem('pe_owner_' + k, JSON.stringify(v)); } catch {} },
+  getArr: (k) => ODB.get(k, [])
+};
+
+// ─────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────
+let _toastFn = null;
+const toast = (msg, type = 'success') => _toastFn && _toastFn(msg, type);
+
+const ToastContainer = () => {
+  const [toasts, setToasts] = useState([]);
+  useEffect(() => { _toastFn = (msg, type) => { const id = Date.now(); setToasts(t => [...t, { id, msg, type }]); setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3500); }; }, []);
+  return <div className="toast-container">{toasts.map(t => <div key={t.id} className={`toast ${t.type}`}>{t.msg}</div>)}</div>;
+};
+
+// ─────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────
+const uid = () => 'o' + Date.now() + Math.random().toString(36).slice(2, 7);
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
+const KYC_BADGE = { Pending: 'badge-pending', Approved: 'badge-approved', Rejected: 'badge-rejected' };
+const KYC_ICON = { Pending: '🟡', Approved: '🟢', Rejected: '🔴' };
+const DEPLOY_BADGE = {
+  'Pending Review': 'badge-review', 'Approved': 'badge-approved', 'Deployment Scheduled': 'badge-scheduled',
+  'In Installation': 'badge-installation', 'Live': 'badge-live', 'Rejected': 'badge-rejected'
+};
+
+// Seed admin (same as main app)
+const initAdminIfNeeded = () => {
+  const admins = ODB.getArr('admins');
+  if (!admins.find(a => a.email === 'admin@parkease.com')) {
+    ODB.set('admins', [...admins, { id: 'admin1', email: 'admin@parkease.com', password: 'Admin@123456', role: 'admin', name: 'Super Admin' }]);
+  }
+};
+initAdminIfNeeded();
+
+// ─────────────────────────────────────────────
+// FILE READER helper (returns base64 data URL)
+// ─────────────────────────────────────────────
+const readFile = (file) => new Promise((resolve) => {
+  if (!file) { resolve(null); return; }
+  const r = new FileReader();
+  r.onload = e => resolve(e.target.result);
+  r.readAsDataURL(file);
+});
+
+// ─────────────────────────────────────────────
+// UPLOAD BOX COMPONENT
+// ─────────────────────────────────────────────
+const UploadBox = ({ label, accept, onChange, value, hint }) => {
+  const [name, setName] = useState('');
+  const handleChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setName(file.name);
+    const data = await readFile(file);
+    onChange(data, file.name);
+  };
+  return (
+    <div className="form-group">
+      <label className="form-label">{label}</label>
+      <div className={`upload-box ${value ? 'has-file' : ''}`}>
+        <input type="file" accept={accept} onChange={handleChange} />
+        <div className="upload-icon">{value ? '✅' : '📎'}</div>
+        <p>{value ? 'File selected' : 'Click to upload or drag & drop'}</p>
+        {(value && name) ? <p className="file-name">📄 {name}</p> : null}
+      </div>
+      {hint && <p className="form-hint">{hint}</p>}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// OWNER REGISTER PAGE
+// ─────────────────────────────────────────────
+const RegisterPage = ({ onLogin, switchToLogin }) => {
+  const [step, setStep] = useState(1);
+  const [view, setView] = useState('signin'); // 'register' | 'signin'
+  const [form, setForm] = useState({ name:'', email:'', phone:'', password:'', confirmPassword:'', idType:'Aadhar', idNumber:'' });
+  const [signInForm, setSignInForm] = useState({ email:'', password:'' });
+  const [idDoc, setIdDoc] = useState(null);
+  const [selfie, setSelfie] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const F = (k) => (v) => setForm(f => ({ ...f, [k]: typeof v === 'string' ? v : v.target.value }));
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 700));
+    const owners = ODB.getArr('owners');
+    const owner = owners.find(o => o.email === signInForm.email && o.password === signInForm.password);
+    setLoading(false);
+    if (owner) { onLogin(owner); toast(`Welcome back, ${owner.name}! 👋`); }
+    else toast('Invalid email or password', 'error');
+  };
+
+  const nextStep = (e) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.phone || !form.password) { toast('Please fill all fields', 'error'); return; }
+    if (form.password !== form.confirmPassword) { toast('Passwords do not match', 'error'); return; }
+    if (form.password.length < 6) { toast('Password must be at least 6 characters', 'error'); return; }
+    const existing = ODB.getArr('owners').find(o => o.email === form.email);
+    if (existing) { toast('Email already registered — please sign in', 'error'); setView('signin'); setSignInForm(f => ({...f, email: form.email})); return; }
+    setStep(2);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.idNumber) { toast('Enter your government ID number', 'error'); return; }
+    if (!idDoc) { toast('Upload your ID proof document', 'error'); return; }
+    if (!selfie) { toast('Upload a selfie with your ID', 'error'); return; }
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 900));
+    const owner = {
+      ownerId: uid(), name: form.name, email: form.email, phone: form.phone,
+      password: form.password,
+      kycStatus: 'Pending', idType: form.idType, idNumber: form.idNumber,
+      idDocumentPath: idDoc, selfiePath: selfie,
+      rejectionReason: null, verifiedBy: null, verifiedAt: null,
+      createdAt: new Date().toISOString()
+    };
+    ODB.set('owners', [...ODB.getArr('owners'), owner]);
+    ODB.set('notifications', [...ODB.getArr('notifications'), {
+      id: uid(), ownerId: owner.ownerId, type: 'kyc', message: 'Your KYC documents have been submitted. We will review within 2-3 business days.', createdAt: new Date().toISOString(), read: false
+    }]);
+    setLoading(false);
+    toast('Account created! KYC submitted for review 🎉');
+    onLogin(owner);
+  };
+
+  return (
+    <div className="auth-wrap">
+      <div className="auth-card wide">
+        <div className="auth-logo">
+          <div className="auth-logo-icon">🏢</div>
+          <h1>Owner Portal</h1>
+          <p>ParkEase Smart Parking Management System</p>
+          <span className="auth-badge">🏢 Property Owner</span>
+        </div>
+
+        {/* Tab switcher */}
+        <div style={{ display:'flex', background:'#f1f5f9', borderRadius:12, padding:4, marginBottom:24 }}>
+          {[{id:'signin',label:'🔑 Sign In'},{id:'register',label:'📝 Register'}].map(t => (
+            <button key={t.id} onClick={() => { setView(t.id); setStep(1); }} style={{ flex:1, padding:'9px 0', borderRadius:9, border:'none', fontWeight:700, fontSize:13, cursor:'pointer', transition:'all .2s', background: view===t.id ? 'white' : 'transparent', color: view===t.id ? '#0f172a' : '#64748b', boxShadow: view===t.id ? '0 1px 4px rgba(0,0,0,.1)' : 'none', fontFamily:'inherit' }}>{t.label}</button>
+          ))}
+        </div>
+
+        {/* ── SIGN IN ── */}
+        {view === 'signin' && (
+          <form onSubmit={handleSignIn}>
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
+              <input className="form-input" type="email" placeholder="owner@example.com" value={signInForm.email} onChange={e => setSignInForm(f => ({...f, email: e.target.value}))} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Password</label>
+              <input className="form-input" type="password" placeholder="••••••••" value={signInForm.password} onChange={e => setSignInForm(f => ({...f, password: e.target.value}))} required />
+            </div>
+            <button className="btn btn-primary btn-lg" disabled={loading}>
+              {loading ? <span className="spinner" /> : '🏢 Sign In as Owner →'}
+            </button>
+            <div style={{ marginTop:14, padding:'10px 14px', background:'#f8fafc', borderRadius:9, border:'1px solid #e2e8f0' }}>
+              <p style={{ fontSize:11, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:1, marginBottom:8 }}>Quick Login (Demo)</p>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSignInForm({ email:'owner@example.com', password:'owner123' })}>🏢 Demo Owner</button>
+            </div>
+            <p style={{ textAlign:'center', marginTop:16, fontSize:13, color:'#64748b' }}>
+              New here? <span style={{ color:'#2563eb', cursor:'pointer', fontWeight:600 }} onClick={() => setView('register')}>Create an account</span>
+            </p>
+          </form>
+        )}
+
+        {/* ── REGISTER ── */}
+        {view === 'register' && (
+          <>
+            <div style={{ display:'flex', alignItems:'center', marginBottom:24 }}>
+              <div style={{ textAlign:'center' }}>
+                <div style={{ width:32, height:32, borderRadius:'50%', background: step >= 1 ? 'linear-gradient(135deg,#065f46,#059669)' : '#e2e8f0', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontSize:13, fontWeight:700, margin:'0 auto 4px' }}>{step > 1 ? '✓' : '1'}</div>
+                <div style={{ fontSize:10, fontWeight:600, color:'#64748b' }}>Account</div>
+              </div>
+              <div style={{ flex:1, height:2, background: step > 1 ? '#059669' : '#e2e8f0', margin:'0 8px 12px' }} />
+              <div style={{ textAlign:'center' }}>
+                <div style={{ width:32, height:32, borderRadius:'50%', background: step >= 2 ? 'linear-gradient(135deg,#1e3a8a,#2563eb)' : '#e2e8f0', display:'flex', alignItems:'center', justifyContent:'center', color: step >= 2 ? 'white' : '#94a3b8', fontSize:13, fontWeight:700, margin:'0 auto 4px', boxShadow: step === 2 ? '0 0 0 4px rgba(37,99,235,.15)' : 'none' }}>2</div>
+                <div style={{ fontSize:10, fontWeight:600, color:'#64748b' }}>KYC Docs</div>
+              </div>
+            </div>
+
+            {step === 1 && (
+              <form onSubmit={nextStep}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Full Name <span className="req">*</span></label>
+                    <input className="form-input" placeholder="Rajesh Kumar" value={form.name} onChange={F('name')} required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Phone Number <span className="req">*</span></label>
+                    <input className="form-input" placeholder="+91 9876543210" value={form.phone} onChange={F('phone')} required />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Email Address <span className="req">*</span></label>
+                  <input className="form-input" type="email" placeholder="you@example.com" value={form.email} onChange={F('email')} required />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Password <span className="req">*</span></label>
+                    <input className="form-input" type="password" placeholder="••••••••" value={form.password} onChange={F('password')} required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Confirm Password <span className="req">*</span></label>
+                    <input className="form-input" type="password" placeholder="••••••••" value={form.confirmPassword} onChange={F('confirmPassword')} required />
+                  </div>
+                </div>
+                <button className="btn btn-primary btn-lg">Continue to KYC →</button>
+                <p style={{ textAlign:'center', marginTop:14, fontSize:13, color:'#64748b' }}>
+                  Already registered? <span style={{ color:'#2563eb', cursor:'pointer', fontWeight:600 }} onClick={() => setView('signin')}>Sign in here</span>
+                </p>
+              </form>
+            )}
+
+            {step === 2 && (
+              <form onSubmit={handleSubmit}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Government ID Type <span className="req">*</span></label>
+                    <select className="form-select" value={form.idType} onChange={F('idType')}>
+                      <option>Aadhar</option><option>PAN</option><option>Driving License</option><option>Passport</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">ID Number <span className="req">*</span></label>
+                    <input className="form-input" placeholder="Enter ID number" value={form.idNumber} onChange={F('idNumber')} required />
+                  </div>
+                </div>
+                <UploadBox label="Upload ID Proof (Image/PDF) *" accept="image/*,.pdf" value={idDoc} onChange={(data) => setIdDoc(data)} hint="Aadhar, PAN, Driving License or Passport" />
+                <UploadBox label="Selfie with ID *" accept="image/*" value={selfie} onChange={(data) => setSelfie(data)} hint="Hold your ID next to your face clearly" />
+                <div style={{ display:'flex', gap:10 }}>
+                  <button type="button" className="btn btn-secondary" style={{ flex:1 }} onClick={() => setStep(1)}>← Back</button>
+                  <button className="btn btn-primary" style={{ flex:2 }} disabled={loading}>
+                    {loading ? <span className="spinner" /> : '🏢 Create Owner Account'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </>
+        )}
+
+        <div style={{ marginTop:20, textAlign:'center' }}>
+          <a href="/booking" style={{ fontSize:13, color:'#94a3b8', textDecoration:'none' }}>← Back to ParkEase Main App</a>
+        </div>
+      </div>
+      <ToastContainer />
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// SIDEBAR
+// ─────────────────────────────────────────────
+const Sidebar = ({ page, setPage, owner, onLogout }) => {
+  const kycOk = owner.kycStatus === 'Approved';
+  const navItems = [
+    { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+    { id: 'kyc-status', icon: '🪪', label: 'KYC Status' },
+    ...(kycOk ? [{ id: 'properties', icon: '🏗️', label: 'My Properties' }, { id: 'add-property', icon: '➕', label: 'Add Property' }] : []),
+    { id: 'notifications', icon: '🔔', label: 'Notifications' },
+  ];
+  return (
+    <div className="sidebar">
+      <div className="sidebar-logo">
+        <div className="logo-icon">🅿️</div>
+        <h2>ParkEase</h2>
+        <p>Owner Portal</p>
+      </div>
+      <div className="sidebar-nav">
+        <div className="nav-section-label">Menu</div>
+        {navItems.map(item => (
+          <div key={item.id} className={`nav-item ${page === item.id ? 'active' : ''}`} onClick={() => setPage(item.id)}>
+            <span className="nav-icon">{item.icon}</span>
+            {item.label}
+          </div>
+        ))}
+      </div>
+      <div className="sidebar-footer">
+        <div className="owner-info">
+          <div className="owner-avatar">{owner.name.charAt(0).toUpperCase()}</div>
+          <div>
+            <div className="owner-name">{owner.name}</div>
+            <div className="owner-role">🏢 Property Owner</div>
+          </div>
+        </div>
+        <button className="btn btn-secondary btn-sm" style={{ width: '100%', marginTop: 10 }} onClick={onLogout}>Sign Out</button>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// KYC STATUS BANNER
+// ─────────────────────────────────────────────
+const KYCBanner = ({ owner, setPage }) => {
+  const s = owner.kycStatus;
+  return (
+    <div className={`kyc-banner ${s.toLowerCase()}`}>
+      <div className="kyc-banner-icon">{KYC_ICON[s]}</div>
+      <div className="kyc-banner-text" style={{ flex: 1 }}>
+        {s === 'Pending' && <><h3>KYC Verification Pending</h3><p>Your documents are under review. This usually takes 2-3 business days.</p></>}
+        {s === 'Approved' && <><h3>KYC Verified ✓</h3><p>You can now list your properties for ParkEase deployment.</p></>}
+        {s === 'Rejected' && <><h3>KYC Rejected</h3><p>{owner.rejectionReason || 'Documents could not be verified. Please re-submit.'}</p></>}
+      </div>
+      {s === 'Rejected' && <button className="btn btn-warning btn-sm" onClick={() => setPage('kyc-status')}>Re-submit</button>}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// DASHBOARD
+// ─────────────────────────────────────────────
+const Dashboard = ({ owner, setPage }) => {
+  const [properties, setProperties] = useState(() => ODB.getArr('properties').filter(p => p.ownerId === owner.ownerId));
+  const [notifs, setNotifs] = useState(() => ODB.getArr('notifications').filter(n => n.ownerId === owner.ownerId && !n.read));
+
+  const reload = () => {
+    setProperties(ODB.getArr('properties').filter(p => p.ownerId === owner.ownerId));
+    setNotifs(ODB.getArr('notifications').filter(n => n.ownerId === owner.ownerId && !n.read));
+  };
+
+  useEffect(() => {
+    reload();
+    const onStorage = (e) => { if (!e || e.key === 'pe_owner_properties' || e.key === 'pe_owner_notifications' || e.key === null) reload(); };
+    window.addEventListener('storage', onStorage);
+    const interval = setInterval(reload, 2000);
+    return () => { window.removeEventListener('storage', onStorage); clearInterval(interval); };
+  }, [owner.ownerId]);
+
+  const liveCount = properties.filter(p => p.deploymentStatus === 'Live').length;
+  const pendingCount = properties.filter(p => p.deploymentStatus === 'Pending Review').length;
+
+  return (
+    <div className="content-area">
+      <KYCBanner owner={owner} setPage={setPage} />
+
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-icon">🏗️</div>
+          <div className="stat-value">{properties.length}</div>
+          <div className="stat-label">Total Properties</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">🟢</div>
+          <div className="stat-value">{liveCount}</div>
+          <div className="stat-label">Live Deployments</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">⏳</div>
+          <div className="stat-value">{pendingCount}</div>
+          <div className="stat-label">Pending Review</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">🔔</div>
+          <div className="stat-value">{notifs.length}</div>
+          <div className="stat-label">Unread Notifications</div>
+        </div>
+      </div>
+
+      {/* Properties summary */}
+      {properties.length > 0 ? (
+        <div className="card" style={{ marginBottom: 20 }}>
+          <div className="card-title" style={{ marginBottom: 16 }}>Recent Properties</div>
+          <div className="table-wrap">
+            <table>
+              <thead><tr><th>Property</th><th>City</th><th>Type</th><th>Capacity</th><th>Status</th></tr></thead>
+              <tbody>
+                {properties.slice(-5).map(p => (
+                  <tr key={p.propertyId}>
+                    <td><strong>{p.propertyName}</strong></td>
+                    <td>{p.city}</td>
+                    <td>{p.propertyType}</td>
+                    <td>{p.capacity} slots</td>
+                    <td><span className={`badge ${DEPLOY_BADGE[p.deploymentStatus] || 'badge-pending'}`}>{p.deploymentStatus}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        owner.kycStatus === 'Approved' && (
+          <div className="card" style={{ textAlign: 'center', padding: 40 }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🏗️</div>
+            <h3 style={{ marginBottom: 8 }}>No Properties Yet</h3>
+            <p style={{ color: '#64748b', marginBottom: 20 }}>Submit your first property for ParkEase deployment</p>
+            <button className="btn btn-primary" onClick={() => setPage('add-property')}>➕ Add Your First Property</button>
+          </div>
+        )
+      )}
+
+      {/* Flow Summary */}
+      <div className="card">
+        <div className="card-title" style={{ marginBottom: 16 }}>📋 ParkEase Deployment Flow</div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0, overflowX: 'auto', paddingBottom: 8 }}>
+          {[
+            { label: 'Register', icon: '📝', done: true },
+            { label: 'KYC Upload', icon: '🪪', done: true },
+            { label: 'KYC Approved', icon: '✅', done: owner.kycStatus === 'Approved' },
+            { label: 'Add Property', icon: '🏗️', done: properties.length > 0 },
+            { label: 'Team Review', icon: '🔍', done: properties.some(p => p.deploymentStatus !== 'Pending Review') },
+            { label: 'Go Live', icon: '🚀', done: liveCount > 0 },
+          ].map((step, i, arr) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{ textAlign: 'center', minWidth: 72 }}>
+                <div style={{ width: 40, height: 40, borderRadius: '50%', background: step.done ? 'linear-gradient(135deg,#065f46,#059669)' : '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, margin: '0 auto 6px', color: step.done ? 'white' : '#94a3b8' }}>{step.icon}</div>
+                <div style={{ fontSize: 10, color: step.done ? '#065f46' : '#94a3b8', fontWeight: 600, whiteSpace: 'nowrap' }}>{step.label}</div>
+              </div>
+              {i < arr.length - 1 && <div style={{ width: 32, height: 2, background: step.done ? '#059669' : '#e2e8f0', flexShrink: 0 }} />}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// KYC STATUS PAGE
+// ─────────────────────────────────────────────
+const KYCStatusPage = ({ owner, onOwnerUpdate }) => {
+  const [resubmitting, setResubmitting] = useState(false);
+  const [form, setForm] = useState({ idType: owner.idType || 'Aadhar', idNumber: owner.idNumber || '' });
+  const [idDoc, setIdDoc] = useState(null);
+  const [selfie, setSelfie] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleResubmit = async (e) => {
+    e.preventDefault();
+    if (!form.idNumber) { toast('Enter ID number', 'error'); return; }
+    if (!idDoc || !selfie) { toast('Please upload both documents', 'error'); return; }
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 800));
+    const owners = ODB.getArr('owners');
+    const updated = { ...owner, idType: form.idType, idNumber: form.idNumber, idDocumentPath: idDoc, selfiePath: selfie, kycStatus: 'Pending', rejectionReason: null, verifiedAt: null };
+    ODB.set('owners', owners.map(o => o.ownerId === owner.ownerId ? updated : o));
+    ODB.set('notifications', [...ODB.getArr('notifications'), { id: uid(), ownerId: owner.ownerId, type: 'kyc', message: 'KYC documents re-submitted for review.', createdAt: new Date().toISOString(), read: false }]);
+    setLoading(false);
+    setResubmitting(false);
+    onOwnerUpdate(updated);
+    toast('KYC documents re-submitted! ✅');
+  };
+
+  return (
+    <div className="content-area">
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="card-title">KYC Verification Status</div>
+        <div className="card-sub" style={{ marginBottom: 20 }}>Your identity verification documents and current status</div>
+
+        <div className={`kyc-banner ${owner.kycStatus.toLowerCase()}`} style={{ marginBottom: 20 }}>
+          <div className="kyc-banner-icon">{KYC_ICON[owner.kycStatus]}</div>
+          <div className="kyc-banner-text">
+            {owner.kycStatus === 'Pending' && <><h3>Verification In Progress</h3><p>Our team is reviewing your documents. Expected: 2-3 business days.</p></>}
+            {owner.kycStatus === 'Approved' && <><h3>Identity Verified ✓</h3><p>Verified on {fmtDate(owner.verifiedAt)} by ParkEase Team.</p></>}
+            {owner.kycStatus === 'Rejected' && <><h3>Verification Rejected</h3><p><strong>Reason:</strong> {owner.rejectionReason || 'Documents could not be verified.'}</p></>}
+          </div>
+        </div>
+
+        <div className="grid-2" style={{ marginBottom: 20 }}>
+          <div>
+            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, marginBottom: 4 }}>ID TYPE</div>
+            <div style={{ fontSize: 15, fontWeight: 600 }}>{owner.idType || '—'}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, marginBottom: 4 }}>ID NUMBER</div>
+            <div style={{ fontSize: 15, fontWeight: 600 }}>{owner.idNumber || '—'}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, marginBottom: 4 }}>SUBMITTED ON</div>
+            <div style={{ fontSize: 15, fontWeight: 600 }}>{fmtDate(owner.createdAt)}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, marginBottom: 4 }}>STATUS</div>
+            <span className={`badge ${KYC_BADGE[owner.kycStatus]}`}>{KYC_ICON[owner.kycStatus]} {owner.kycStatus}</span>
+          </div>
+        </div>
+
+        {owner.idDocumentPath && (
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, marginBottom: 8 }}>UPLOADED DOCUMENTS</div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ padding: '8px 14px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0', fontSize: 13, color: '#065f46', fontWeight: 600 }}>✅ ID Proof</div>
+              {owner.selfiePath && <div style={{ padding: '8px 14px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0', fontSize: 13, color: '#065f46', fontWeight: 600 }}>✅ Selfie with ID</div>}
+            </div>
+          </div>
+        )}
+
+        {owner.kycStatus === 'Rejected' && !resubmitting && (
+          <button className="btn btn-primary" onClick={() => setResubmitting(true)}>🔄 Re-submit Documents</button>
+        )}
+      </div>
+
+      {resubmitting && (
+        <div className="card">
+          <div className="card-title" style={{ marginBottom: 16 }}>Re-submit KYC Documents</div>
+          <form onSubmit={handleResubmit}>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Government ID Type</label>
+                <select className="form-select" value={form.idType} onChange={e => setForm(f => ({ ...f, idType: e.target.value }))}>
+                  <option>Aadhar</option><option>PAN</option><option>Driving License</option><option>Passport</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">ID Number <span className="req">*</span></label>
+                <input className="form-input" value={form.idNumber} onChange={e => setForm(f => ({ ...f, idNumber: e.target.value }))} required />
+              </div>
+            </div>
+            <UploadBox label="Upload ID Proof *" accept="image/*,.pdf" value={idDoc} onChange={(d) => setIdDoc(d)} />
+            <UploadBox label="Selfie with ID *" accept="image/*" value={selfie} onChange={(d) => setSelfie(d)} />
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button type="button" className="btn btn-secondary" onClick={() => setResubmitting(false)}>Cancel</button>
+              <button className="btn btn-primary" disabled={loading}>{loading ? <span className="spinner" /> : 'Submit Documents'}</button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// ADD PROPERTY
+// ─────────────────────────────────────────────
+const AddPropertyPage = ({ owner, onAdded }) => {
+  const [form, setForm] = useState({
+    propertyName: '', address: '', city: '', latitude: '', longitude: '',
+    totalArea: '', capacity: '', propertyType: 'Open Plot', electricity: 'Yes', internet: 'Yes',
+  });
+  const [images, setImages] = useState([]);
+  const [ownershipProof, setOwnershipProof] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const F = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const handleImgUpload = async (e) => {
+    const files = Array.from(e.target.files).slice(0, 5);
+    const datas = await Promise.all(files.map(readFile));
+    setImages(datas.filter(Boolean));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.propertyName || !form.address || !form.city || !form.capacity) { toast('Fill all required fields', 'error'); return; }
+    if (!ownershipProof) { toast('Upload ownership proof document', 'error'); return; }
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 900));
+    // Normalize city to title case so it always matches the user page (e.g. "durg" → "Durg")
+    const normalizeCity = (c) => c.trim().toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+    const property = {
+      propertyId: uid(), ownerId: owner.ownerId, ...form,
+      city: normalizeCity(form.city),
+      images, ownershipProof,
+      deploymentStatus: 'Pending Review', createdAt: new Date().toISOString()
+    };
+    ODB.set('properties', [...ODB.getArr('properties'), property]);
+    ODB.set('notifications', [...ODB.getArr('notifications'), {
+      id: uid(), ownerId: owner.ownerId, type: 'property', message: `Property "${form.propertyName}" submitted for ParkEase team review.`, createdAt: new Date().toISOString(), read: false
+    }]);
+    setLoading(false);
+    toast('Property submitted for review! 🏗️');
+    onAdded();
+  };
+
+  return (
+    <div className="content-area">
+      <div className="card">
+        <div className="card-title">Add New Property</div>
+        <div className="card-sub" style={{ marginBottom: 24 }}>Submit your property for ParkEase smart parking deployment</div>
+        <form onSubmit={handleSubmit}>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Property Name <span className="req">*</span></label>
+              <input className="form-input" placeholder="Rajesh Commercial Complex" value={form.propertyName} onChange={F('propertyName')} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">City <span className="req">*</span></label>
+              <input className="form-input" placeholder="Raipur" value={form.city} onChange={F('city')} required />
+              <p className="form-hint">e.g. Raipur, Durg, Bhilai, Rajnandgaon</p>
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Full Address <span className="req">*</span></label>
+            <input className="form-input" placeholder="123, MG Road, Shankar Nagar, Raipur - 492007" value={form.address} onChange={F('address')} required />
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Latitude</label>
+              <input className="form-input" type="number" step="any" placeholder="21.2514" value={form.latitude} onChange={F('latitude')} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Longitude</label>
+              <input className="form-input" type="number" step="any" placeholder="81.6296" value={form.longitude} onChange={F('longitude')} />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Total Area (sq ft)</label>
+              <input className="form-input" type="number" placeholder="5000" value={form.totalArea} onChange={F('totalArea')} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Estimated Parking Capacity <span className="req">*</span></label>
+              <input className="form-input" type="number" placeholder="30" value={form.capacity} onChange={F('capacity')} required />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Property Type</label>
+              <select className="form-select" value={form.propertyType} onChange={F('propertyType')}>
+                <option>Open Plot</option><option>Basement</option><option>Mall</option><option>Private Land</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Electricity Available</label>
+              <select className="form-select" value={form.electricity} onChange={F('electricity')}>
+                <option>Yes</option><option>No</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Internet Available</label>
+            <select className="form-select" value={form.internet} onChange={F('internet')} style={{ maxWidth: 200 }}>
+              <option>Yes</option><option>No</option>
+            </select>
+          </div>
+
+          {/* Property Images */}
+          <div className="form-group">
+            <label className="form-label">Property Images (up to 5)</label>
+            <div className={`upload-box ${images.length > 0 ? 'has-file' : ''}`}>
+              <input type="file" accept="image/*" multiple onChange={handleImgUpload} />
+              <div className="upload-icon">{images.length > 0 ? '🖼️' : '📷'}</div>
+              <p>{images.length > 0 ? `${images.length} image(s) selected` : 'Upload property photos'}</p>
+            </div>
+          </div>
+
+          <UploadBox label="Ownership Proof Document *" accept="image/*,.pdf" value={ownershipProof} onChange={(d) => setOwnershipProof(d)} hint="Sale deed, lease agreement, or property registration" />
+
+          <button className="btn btn-primary btn-lg" disabled={loading}>
+            {loading ? <span className="spinner" /> : '🏗️ Submit Property for Review'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// PROPERTIES LIST PAGE
+// ─────────────────────────────────────────────
+const PropertiesPage = ({ owner, setPage }) => {
+  const [properties, setProperties] = useState(() => ODB.getArr('properties').filter(p => p.ownerId === owner.ownerId));
+
+  const reload = () => setProperties(ODB.getArr('properties').filter(p => p.ownerId === owner.ownerId));
+
+  const deleteProperty = (propertyId, propertyName) => {
+    if (!window.confirm(`Delete "${propertyName}"? This cannot be undone.`)) return;
+    const all = ODB.getArr('properties').filter(p => p.propertyId !== propertyId);
+    ODB.set('properties', all);
+    reload();
+  };
+
+  useEffect(() => {
+    reload();
+    const onStorage = (e) => { if (!e || e.key === 'pe_owner_properties' || e.key === null) reload(); };
+    window.addEventListener('storage', onStorage);
+    const interval = setInterval(reload, 2000);
+    return () => { window.removeEventListener('storage', onStorage); clearInterval(interval); };
+  }, [owner.ownerId]);
+
+  const statusFlow = ['Pending Review', 'Approved', 'Deployment Scheduled', 'In Installation', 'Live'];
+
+  if (properties.length === 0) {
+    return (
+      <div className="content-area">
+        <div className="card">
+          <div className="empty">
+            <div className="empty-icon">🏗️</div>
+            <h3>No Properties Listed</h3>
+            <p>Submit your first property for ParkEase smart parking deployment</p>
+            <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => setPage('add-property')}>➕ Add Property</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="content-area">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700 }}>My Properties</h2>
+        <button className="btn btn-primary btn-sm" onClick={() => setPage('add-property')}>➕ Add New Property</button>
+      </div>
+      {properties.map(p => (
+        <div key={p.propertyId} className="prop-card" style={{ marginBottom: 16 }}>
+          <div className="prop-card-header">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+              <div className="prop-card-title">{p.propertyName}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span className={`badge ${DEPLOY_BADGE[p.deploymentStatus] || 'badge-pending'}`}>{p.deploymentStatus}</span>
+                <button
+                  onClick={() => deleteProperty(p.propertyId, p.propertyName)}
+                  style={{ background: 'none', border: '1px solid #fca5a5', color: '#ef4444', borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 700, cursor: 'pointer', lineHeight: 1.6 }}
+                  title="Delete property"
+                >✕ Delete</button>
+              </div>
+            </div>
+            <div className="prop-card-addr">📍 {p.address}, {p.city}</div>
+            {/* Deployment Progress Bar */}
+            <div style={{ display: 'flex', gap: 0, margin: '12px 0 0' }}>
+              {statusFlow.map((s, i) => {
+                const idx = statusFlow.indexOf(p.deploymentStatus);
+                const done = i <= idx;
+                return (
+                  <div key={s} style={{ flex: 1, padding: '4px 2px', textAlign: 'center' }}>
+                    <div style={{ height: 4, background: done ? '#2563eb' : '#e2e8f0', borderRadius: i === 0 ? '4px 0 0 4px' : i === statusFlow.length - 1 ? '0 4px 4px 0' : 0 }} />
+                    <div style={{ fontSize: 9, color: done ? '#2563eb' : '#94a3b8', marginTop: 3, fontWeight: done ? 700 : 400 }}>{s}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="prop-card-body">
+            <div className="prop-meta">
+              <div className="prop-meta-item"><strong>{p.capacity}</strong> slots</div>
+              <div className="prop-meta-item"><strong>{p.propertyType}</strong></div>
+              <div className="prop-meta-item"><strong>⚡ {p.electricity}</strong> Electricity</div>
+              <div className="prop-meta-item"><strong>🌐 {p.internet}</strong> Internet</div>
+              <div className="prop-meta-item"><strong>📅</strong> {fmtDate(p.createdAt)}</div>
+              {p.images && p.images.length > 0 && <div className="prop-meta-item"><strong>🖼️ {p.images.length}</strong> photos</div>}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────
+const NotificationsPage = ({ owner, onMarkRead }) => {
+  const [notifs, setNotifs] = useState(() => ODB.getArr('notifications').filter(n => n.ownerId === owner.ownerId).reverse());
+
+  const reload = () => setNotifs(ODB.getArr('notifications').filter(n => n.ownerId === owner.ownerId).reverse());
+
+  useEffect(() => {
+    reload();
+    const onStorage = (e) => { if (!e || e.key === 'pe_owner_notifications' || e.key === null) reload(); };
+    window.addEventListener('storage', onStorage);
+    const interval = setInterval(reload, 2000);
+    return () => { window.removeEventListener('storage', onStorage); clearInterval(interval); };
+  }, [owner.ownerId]);
+
+  const markAllRead = () => {
+    const all = ODB.getArr('notifications').map(n => n.ownerId === owner.ownerId ? { ...n, read: true } : n);
+    ODB.set('notifications', all);
+    reload();
+    onMarkRead();
+    toast('All notifications marked as read');
+  };
+
+  return (
+    <div className="content-area">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700 }}>Notifications</h2>
+        {notifs.some(n => !n.read) && <button className="btn btn-secondary btn-sm" onClick={markAllRead}>Mark all read</button>}
+      </div>
+      {notifs.length === 0 ? (
+        <div className="card"><div className="empty"><div className="empty-icon">🔔</div><h3>No Notifications</h3><p>You're all caught up!</p></div></div>
+      ) : (
+        <div className="card">
+          {notifs.map(n => (
+            <div key={n.id} className="notif" style={{ background: n.read ? 'white' : '#eff6ff', borderColor: n.read ? '#e2e8f0' : '#bfdbfe' }}>
+              <div className="notif-icon">{n.type === 'kyc' ? '🪪' : '🏗️'}</div>
+              <div className="notif-text">
+                <strong>{n.message}</strong>
+                <span>{fmtDate(n.createdAt)}</span>
+              </div>
+              {!n.read && <div style={{ width: 8, height: 8, background: '#2563eb', borderRadius: '50%', flexShrink: 0, marginTop: 4 }} />}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// OWNER APP SHELL
+// ─────────────────────────────────────────────
+const PAGE_TITLES = {
+  dashboard: '📊 Dashboard', 'kyc-status': '🪪 KYC Status', properties: '🏗️ My Properties',
+  'add-property': '➕ Add Property', notifications: '🔔 Notifications'
+};
+
+const OwnerApp = ({ owner: initOwner, onLogout }) => {
+  const [owner, setOwner] = useState(initOwner);
+  const [page, setPage] = useState('dashboard');
+  const [, forceUpdate] = useState(0);
+
+  const refreshOwner = () => {
+    const latest = ODB.getArr('owners').find(o => o.ownerId === owner.ownerId);
+    if (latest) setOwner(latest);
+  };
+
+  // Auto-refresh owner object when admin approves/rejects KYC from the other tab
+  useEffect(() => {
+    const onStorage = (e) => { if (!e || e.key === 'pe_owner_owners' || e.key === null) refreshOwner(); };
+    window.addEventListener('storage', onStorage);
+    const interval = setInterval(refreshOwner, 2000);
+    return () => { window.removeEventListener('storage', onStorage); clearInterval(interval); };
+  }, [owner.ownerId]);
+
+  const handleLogout = () => { onLogout(); toast('Logged out successfully', 'info'); };
+
+  const renderPage = () => {
+    switch (page) {
+      case 'dashboard': return <Dashboard owner={owner} setPage={setPage} />;
+      case 'kyc-status': return <KYCStatusPage owner={owner} onOwnerUpdate={(o) => setOwner(o)} />;
+      case 'properties': return <PropertiesPage owner={owner} setPage={setPage} />;
+      case 'add-property':
+        if (owner.kycStatus !== 'Approved') {
+          return (
+            <div className="content-area">
+              <div className="card" style={{ textAlign: 'center', padding: 48 }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>🔒</div>
+                <h3 style={{ marginBottom: 8 }}>KYC Required</h3>
+                <p style={{ color: '#64748b', marginBottom: 20 }}>Your KYC must be approved before you can add properties.</p>
+                <button className="btn btn-primary" onClick={() => setPage('kyc-status')}>View KYC Status</button>
+              </div>
+            </div>
+          );
+        }
+        return <AddPropertyPage owner={owner} onAdded={() => { setPage('properties'); }} />;
+      case 'notifications': return <NotificationsPage owner={owner} onMarkRead={() => forceUpdate(n => n + 1)} />;
+      default: return <Dashboard owner={owner} setPage={setPage} />;
+    }
+  };
+
+  return (
+    <div className="shell">
+      <Sidebar page={page} setPage={(p) => { refreshOwner(); setPage(p); }} owner={owner} onLogout={handleLogout} />
+      <div className="main">
+        <div className="topbar">
+          <div className="topbar-title">{PAGE_TITLES[page]}</div>
+          <div className="topbar-right">
+            <div style={{ fontSize: 13, color: '#64748b' }}>KYC: <span className={`badge ${KYC_BADGE[owner.kycStatus]}`} style={{ padding: '2px 8px' }}>{owner.kycStatus}</span></div>
+            <button className="btn btn-secondary btn-sm" onClick={handleLogout}>Sign Out</button>
+          </div>
+        </div>
+        {renderPage()}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// MAIN APP
+// ─────────────────────────────────────────────
+const App = () => {
+  const [owner, setOwner] = useState(null);
+  const [mode, setMode] = useState('signin'); // register | login — skip standalone login page
+
+  // Seed a demo owner for quick testing
+  useEffect(() => {
+    const owners = ODB.getArr('owners');
+    if (!owners.find(o => o.email === 'owner@example.com')) {
+      ODB.set('owners', [...owners, {
+        ownerId: 'demo-owner-1', name: 'Demo Owner', email: 'owner@example.com', phone: '+91 9876543210',
+        password: 'owner123', kycStatus: 'Approved', idType: 'Aadhar', idNumber: 'XXXX-XXXX-1234',
+        idDocumentPath: null, selfiePath: null,
+        rejectionReason: null, verifiedBy: 'admin1', verifiedAt: new Date().toISOString(),
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      }]);
+    }
+  }, []);
+
+  if (!owner) {
+    return <RegisterPage onLogin={setOwner} switchToLogin={() => setMode('login')} />;
+  }
+  return <OwnerApp owner={owner} onLogout={() => setOwner(null)} />;
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

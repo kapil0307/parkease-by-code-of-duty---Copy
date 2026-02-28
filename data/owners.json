@@ -1,0 +1,18 @@
+[
+  {
+    "ownerId": "demo-owner-1",
+    "name": "Demo Owner",
+    "email": "owner@example.com",
+    "phone": "+91 9876543210",
+    "password": "owner123",
+    "kycStatus": "Approved",
+    "idType": "Aadhar",
+    "idNumber": "XXXX-XXXX-1234",
+    "idDocumentPath": null,
+    "selfiePath": null,
+    "rejectionReason": null,
+    "verifiedBy": "admin1",
+    "verifiedAt": "2025-01-15T10:00:00.000Z",
+    "createdAt": "2025-01-10T08:00:00.000Z"
+  }
+]

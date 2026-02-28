@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ParkEase — Smart Gate Entry</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet" />
+  <!-- Plate Recognizer API is used server-side — no extra script needed -->
+  <style>
+    :root{
+      --blue:#2563eb;--blue-d:#1d4ed8;
+      --green:#16a34a;--green-l:#dcfce7;--green-b:#166534;
+      --red:#dc2626;--red-l:#fee2e2;--red-b:#991b1b;
+      --gray1:#f9fafb;--gray2:#f3f4f6;--gray3:#e5e7eb;
+      --gray5:#6b7280;--gray7:#374151;--gray8:#1f2937;
+      --shadow:0 4px 12px rgba(0,0,0,.08);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{max-width:100%;overflow-x:hidden;font-family:'DM Sans',sans-serif;background:var(--gray1);color:var(--gray8)}
+
+    header{background:linear-gradient(135deg,#0f172a,#1e3a8a);height:58px;padding:0 20px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)}
+    .logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+    .logo-icon{width:34px;height:34px;background:var(--blue);border-radius:8px;display:grid;place-items:center;font-size:17px}
+    .logo-name{color:#fff;font-weight:700;font-size:17px}
+    .logo-tag{color:#60a5fa;font-size:9px;letter-spacing:2px;text-transform:uppercase}
+    .badge{margin-left:auto;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.35);color:#4ade80;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;white-space:nowrap}
+    .back{margin-left:10px;color:rgba(255,255,255,.65);text-decoration:none;font-size:12px;white-space:nowrap}
+    .back:hover{color:#fff}
+
+    main{max-width:1060px;margin:28px auto;padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    @media(max-width:780px){main{grid-template-columns:1fr}}
+
+    .card{background:#fff;border-radius:14px;padding:22px;box-shadow:var(--shadow);border:1px solid var(--gray3);min-width:0;overflow:hidden}
+    .card-title{font-size:15px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:7px}
+    .card-sub{font-size:12px;color:var(--gray5);margin-bottom:16px}
+
+    #cam-box{width:100%;aspect-ratio:4/3;background:#0f172a;border-radius:10px;overflow:hidden;position:relative;margin-bottom:14px;display:flex;align-items:center;justify-content:center;border:2px solid var(--gray3)}
+    #cam-img{width:100%;height:100%;object-fit:cover;display:none}
+    .cam-ph{color:rgba(255,255,255,.3);text-align:center;font-size:13px;line-height:1.8;pointer-events:none}
+    .cam-ph span{font-size:40px;display:block;margin-bottom:6px}
+    #scan-line{position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#3b82f6,transparent);top:10%;animation:scan 1.8s linear infinite;display:none;z-index:2}
+    @keyframes scan{0%{top:10%}100%{top:90%}}
+
+    /* OCR progress */
+    #ocr-prog{display:none;margin-bottom:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px}
+    #ocr-prog-bar-wrap{height:6px;background:#dbeafe;border-radius:3px;overflow:hidden;margin-bottom:6px}
+    #ocr-prog-bar{height:100%;background:var(--blue);width:0%;transition:width .4s ease;border-radius:3px}
+    #ocr-prog-text{font-size:12px;color:#1d4ed8;font-weight:500}
+
+    .row{display:flex;gap:8px;margin-bottom:12px;min-width:0}
+    .row input{flex:1;min-width:0;padding:9px 12px;border:1.5px solid var(--gray3);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--gray8);outline:none;transition:border-color .2s}
+    .row input:focus{border-color:var(--blue)}
+
+    .manual{display:flex;gap:8px;min-width:0}
+    .manual input{flex:1;min-width:0;padding:9px 12px;border:1.5px solid var(--gray3);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:2px;text-transform:uppercase;outline:none;transition:border-color .2s;color:var(--gray8)}
+    .manual input:focus{border-color:var(--blue)}
+    .manual input::placeholder{font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:normal}
+
+    .btn{padding:9px 14px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;transition:background .15s}
+    .btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:var(--blue-d)}.btn-blue:disabled{opacity:.5;cursor:not-allowed}
+    .btn-red{background:#fff;color:var(--red);border:1.5px solid #fca5a5}.btn-red:hover{background:var(--red-l)}
+    .btn-gray{background:var(--gray2);color:var(--gray7);border:1px solid var(--gray3)}.btn-gray:hover{background:var(--gray3)}
+    .btn-sm{padding:6px 11px;font-size:12px}
+
+    .divider{display:flex;align-items:center;gap:10px;margin:12px 0;color:#9ca3af;font-size:12px}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--gray3)}
+
+
+    /* Status */
+    #status{border-radius:14px;padding:24px 16px;text-align:center;background:#fff;border:2px solid var(--gray3);box-shadow:var(--shadow);min-height:210px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-width:0;overflow:hidden;transition:all .3s ease}
+    #status.granted{background:linear-gradient(135deg,#f0fdf4,var(--green-l));border-color:#4ade80}
+    #status.denied{background:linear-gradient(135deg,#fef2f2,var(--red-l));border-color:#f87171}
+    #status.scanning{background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:var(--blue)}
+    .s-icon{font-size:50px;line-height:1}
+    .s-label{font-size:22px;font-weight:700}
+    .s-label.granted{color:var(--green)}.s-label.denied{color:var(--red)}.s-label.scanning{color:var(--blue)}
+    .s-plate{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;padding:7px 16px;border-radius:8px;background:var(--gray8);color:#fff;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+    .s-msg{font-size:13px;color:var(--gray5);max-width:100%;word-break:break-word;line-height:1.6;padding:0 4px;text-align:center}
+
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+    .pulse{animation:pulse .5s ease 3}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+    .fade{animation:fadeUp .3s ease forwards}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+
+    /* Log table */
+    .log-wrap{overflow-x:auto;width:100%}
+    table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+    thead th{padding:9px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray5);text-align:left;background:var(--gray2);border-bottom:1.5px solid var(--gray3)}
+    th:nth-child(1),td:nth-child(1){width:24%}th:nth-child(2),td:nth-child(2){width:28%}th:nth-child(3),td:nth-child(3){width:26%}th:nth-child(4),td:nth-child(4){width:22%}
+    tbody td{padding:9px 8px;border-bottom:1px solid var(--gray2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:0}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr:hover td{background:var(--gray1)}
+    .chip{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:700}
+    .chip.granted{background:var(--green-l);color:var(--green-b)}.chip.denied{background:var(--red-l);color:var(--red-b)}.chip.duplicate{background:#fef9c3;color:#854d0e}
+    .mono{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--gray7)}
+    .det-cell{color:#9ca3af;font-size:11px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .ts{color:#9ca3af;font-size:10px}
+    .empty{text-align:center;color:#9ca3af;padding:24px;font-size:12px}
+
+    .tip{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);border:1px solid var(--gray3);border-left:4px solid var(--blue);font-size:12px;color:var(--gray5);line-height:1.8}
+    .tip b{color:var(--blue);display:block;margin-bottom:4px;font-size:13px}
+    code{background:var(--gray2);padding:1px 5px;border-radius:3px;font-size:11px;font-family:'JetBrains Mono',monospace}
+
+    #ocr-ready{display:none;font-size:11px;color:var(--green);font-weight:600;text-align:center;margin-bottom:8px}
+
+    /* ── Flagged Alert Banner (gate operator — discreet) ── */
+    #flagged-banner{
+      display:none;position:fixed;bottom:20px;right:20px;z-index:9999;
+      background:#1e1b2e;border:2px solid #dc2626;border-radius:14px;
+      padding:14px 18px;max-width:300px;box-shadow:0 8px 32px rgba(220,38,38,.3);
+      animation:slideIn .4s ease;
+    }
+    @keyframes slideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    #flagged-banner .fb-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    #flagged-banner .fb-icon{font-size:20px;animation:pulse .8s ease infinite}
+    #flagged-banner .fb-title{color:#f87171;font-size:13px;font-weight:700;letter-spacing:.3px}
+    #flagged-banner .fb-body{font-size:12px;color:#e2e8f0;line-height:1.7}
+    #flagged-banner .fb-plate{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:#fbbf24;display:block;margin:4px 0}
+    #flagged-banner .fb-note{font-size:10px;color:#94a3b8;margin-top:6px;border-top:1px solid rgba(255,255,255,.1);padding-top:6px}
+    #flagged-banner .fb-close{position:absolute;top:8px;right:10px;cursor:pointer;color:#94a3b8;font-size:16px;line-height:1;background:none;border:none;padding:2px 4px}
+    #flagged-banner .fb-close:hover{color:#f87171}
+  </style>
+</head>
+<body>
+
+<!-- Flagged Vehicle Discreet Alert Banner (gate operator eyes only) -->
+<div id="flagged-banner" role="alert" aria-live="assertive">
+  <button class="fb-close" onclick="document.getElementById('flagged-banner').style.display='none'" title="Dismiss">&#10005;</button>
+  <div class="fb-header">
+    <span class="fb-icon">&#x1F6A8;</span>
+    <span class="fb-title">WARNING: FLAGGED VEHICLE</span>
+  </div>
+  <div class="fb-body">
+    Plate: <span class="fb-plate" id="fb-plate">&#8212;</span>
+    Status: <strong style="color:#f87171" id="fb-status">Flagged</strong><br>
+    Reason: <span id="fb-reason">&#8212;</span>
+  </div>
+  <div class="fb-note">&#x1F512; Authorities notified silently &nbsp;|&nbsp; Do not alert driver</div>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🅿️</div>
+    <div>
+      <div class="logo-name">ParkEase</div>
+      <div class="logo-tag">Smart Gate Entry</div>
+    </div>
+  </div>
+  <span class="badge">🤖 AI + Plate Recognizer</span>
+  <a href="ParkEase-Connected.html" class="back">← Booking Portal</a>
+</header>
+
+<main>
+  <!-- LEFT -->
+  <div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">📷 IP Webcam Scanner</div>
+      <div class="card-sub">Connects to your Android IP Webcam via server proxy — just enter the base URL</div>
+
+      <!-- Camera preview -->
+      <div id="cam-box">
+        <div class="cam-ph" id="cam-ph">
+          <span>📷</span>
+          Camera preview<br>
+          <span style="font-size:11px;opacity:.6">Enter your IP Webcam URL below</span>
+        </div>
+        <img id="cam-img" alt="camera" />
+        <div id="scan-line"></div>
+      </div>
+
+      <!-- OCR progress bar -->
+      <div id="ocr-prog">
+        <div id="ocr-prog-bar-wrap"><div id="ocr-prog-bar"></div></div>
+        <div id="ocr-prog-text">Initialising OCR…</div>
+      </div>
+
+      <div id="ocr-ready">✅ OCR.space API ready</div>
+
+      <!-- Camera URL -->
+      <div class="row">
+        <input id="cam-url" type="url" placeholder="http://10.79.159.72:8080  (or full URL with /shot.jpg)" />
+        <button class="btn btn-blue" id="btn-scan" onclick="startScan()">
+          <span id="btn-label">📡 Scan</span>
+          <div class="spinner" id="spinner" style="display:none"></div>
+        </button>
+      </div>
+
+        <div class="divider">or type plate number directly</div>
+
+      <div class="manual">
+        <input id="plate-input" type="text" placeholder="e.g. CG04AB1234" maxlength="12"
+          oninput="this.value=this.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase()" />
+        <button class="btn btn-blue" onclick="verifyManual()">✅ Verify</button>
+      </div>
+    </div>
+
+    <div class="tip">
+      <b>📱 Android IP Webcam Setup</b>
+      1. Install <b>IP Webcam</b> app (Play Store, free)<br>
+      2. Open app → scroll down → <b>Start Server</b><br>
+      3. Note the URL, e.g. <code>http://192.168.1.5:8080</code><br>
+      4. Enter <code>http://192.168.1.5:8080/shot.jpg</code> above<br>
+      5. Phone &amp; PC must be on <b>same WiFi</b><br>
+      6. Hold phone <b>20–40 cm</b> from plate, good lighting<br>
+      7. OCR.space reads the plate → auto-verified instantly ✅
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div>
+    <div id="status">
+      <div class="s-icon">🚗</div>
+      <div class="s-label" style="color:#9ca3af">Awaiting Scan</div>
+      <div class="s-msg">Scan with camera or type plate number to verify booking</div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px">
+        <div class="card-title" style="margin:0">📋 Entry Log</div>
+        <button class="btn btn-red btn-sm" onclick="clearLogs()">🗑 Clear</button>
+      </div>
+      <div class="card-sub">Updates after each verification</div>
+      <div class="log-wrap">
+        <table>
+          <thead><tr><th>Plate</th><th>OCR Read</th><th>Status</th><th>Time</th></tr></thead>
+          <tbody id="log-body"><tr><td colspan="4" class="empty">No entries yet</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// API is relative — gate.html is served BY the backend at http://localhost:5000/gate
+const API = '';
+// ── Helpers ───────────────────────────────────────────────
+const cleanPlate   = (raw) => { let p = (raw||'').replace(/[^A-Za-z0-9]/g,'').toUpperCase().trim(); if(p && !p.startsWith('IND')) p='IND'+p; return p; };
+const isValidPlate = (p)   => p && p.length >= 4 && p.length <= 12 && /[A-Z]/.test(p) && /[0-9]/.test(p);
+
+// Auto-fix: if user typed only base URL (e.g. http://10.79.159.72:8080) append /shot.jpg
+function normalizeCamUrl(raw) {
+  let u = raw.trim().replace(/\/$/, '');
+  if (!u.includes('/shot') && !u.match(/\/[^/]+\.\w{2,4}$/)) u += '/shot.jpg';
+  return u;
+}
+
+// ── OCR Progress bar ──────────────────────────────────────
+function setOCRProgress(text, pct) {
+  document.getElementById('ocr-prog').style.display = 'block';
+  document.getElementById('ocr-prog-bar').style.width = pct + '%';
+  document.getElementById('ocr-prog-text').textContent = text;
+}
+function hideOCRProgress() { document.getElementById('ocr-prog').style.display = 'none'; }
+
+// ── Start camera scan — all fetching done server-side ─────
+async function startScan() {
+  let rawUrl = document.getElementById('cam-url').value.trim();
+  if (!rawUrl) {
+    alert('Enter your IP Webcam URL\nExample: http://10.79.159.72:8080');
+    return;
+  }
+
+  const camUrl = normalizeCamUrl(rawUrl);
+  document.getElementById('cam-url').value = camUrl;
+
+  setScanningUI(true);
+  setStatus({ type:'scanning', message:'📷 Capturing image…' });
+
+  try {
+    // ── Step 1: Show preview using proxy URL as <img> src (no extra fetch needed) ──
+    const proxyUrl = `${API}/api/camera-proxy?url=${encodeURIComponent(camUrl)}&t=${Date.now()}`;
+    const camImg   = document.getElementById('cam-img');
+    document.getElementById('cam-ph').style.display = 'none';
+    camImg.src   = proxyUrl;
+    camImg.style.display = 'block';
+    document.getElementById('scan-line').style.display = 'block';
+
+    setOCRProgress('Reading plate with OCR…', 30);
+    setStatus({ type:'scanning', message:'🔍 Reading plate with Plate Recognizer…' });
+
+    // ── Step 2: Single call — backend fetches image + runs Engine 1 & 2 in parallel ──
+    const ocrResp = await fetch(`${API}/api/ocr-plate`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ url: camUrl })
+    });
+
+    document.getElementById('scan-line').style.display = 'none';
+    hideOCRProgress();
+
+    const ocrData = await ocrResp.json();
+    const plate   = (ocrData.plate || '').trim();
+    const conf    = ocrData.confidence ? ` (${ocrData.confidence}% confidence)` : '';
+    console.log('PlateRecognizer result — plate:', plate, 'confidence:', ocrData.confidence);
+
+    if (!plate || plate.length < 3) {
+      setStatus({ type:'denied', plate:'', message:'⚠️ Could not read the plate clearly.\n\nTips:\n• Hold phone 20–40 cm from plate\n• Ensure good lighting\n• Keep plate straight in frame\n\nOr type the plate number manually below.' });
+    } else {
+      setStatus({ type:'scanning', plate, message:`✅ Plate detected: ${plate}${conf}\nVerifying booking…` });
+      await callVerify(plate);
+    }
+
+  } catch (err) {
+    document.getElementById('scan-line').style.display = 'none';
+    hideOCRProgress();
+    console.error('Scan error:', err);
+    const msg = err.message || '';
+    if (msg.includes('timed out') || msg.includes('Camera timed')) {
+      setStatus({ type:'denied', plate:'', message:'⏱️ Camera timed out.\n• Is IP Webcam app running on your phone?\n• Are both devices on the same WiFi?' });
+    } else if (msg.includes('Cannot reach') || msg.includes('ECONNREFUSED') || msg.includes('NetworkError') || msg.includes('Failed to fetch')) {
+      setStatus({ type:'denied', plate:'', message:'❌ Cannot reach camera.\n• Open IP Webcam app → Start Server\n• Both devices must be on same WiFi\n• Check the IP address is correct' });
+    } else {
+      setStatus({ type:'denied', plate:'', message:'❌ ' + msg });
+    }
+  } finally {
+    setScanningUI(false);
+  }
+}
+
+function setScanningUI(on) {
+  const btn = document.getElementById('btn-scan');
+  btn.disabled = on;
+  document.getElementById('btn-label').textContent = on ? '…' : '📡 Scan';
+  document.getElementById('spinner').style.display = on ? 'block' : 'none';
+}
+
+
+// ── Manual verify ─────────────────────────────────────────
+function verifyManual() {
+  const raw = document.getElementById('plate-input').value.trim().toUpperCase();
+  if (!raw) { alert('Enter a vehicle number'); return; }
+  if (!isValidPlate(raw)) {
+    setStatus({ type:'denied', plate:'', message:'⚠️ Invalid format. Use e.g. CG04AB1234\n(letters + numbers, 4–12 characters)' });
+    return;
+  }
+  callVerify(raw); // IND prefix added inside callVerify
+}
+
+// ── Call backend to verify booking ───────────────────────
+async function callVerify(rawPlate) {
+  const plate = rawPlate.replace(/[^A-Za-z0-9]/g,'').toUpperCase().trim();
+
+  setStatus({ type:'scanning', message:'Checking booking for IND' + plate + '…' });
+  document.getElementById('plate-input').value = '';
+
+  try {
+    const res  = await fetch(`${API}/api/scan-vehicle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ detected_text: plate })  // backend adds IND automatically
+    });
+    const data = await res.json();
+    setStatus({
+      type: data.status === 'Access Granted' ? 'granted' : 'denied',
+      plate: data.vehicle_number || plate,
+      message: data.message
+    });
+
+    // ── Discreet flagged vehicle alert (gate operator only, NOT shown to driver) ──
+    if (data.flaggedAlert && data.flaggedAlert.flagged) {
+      showFlaggedBanner(data.vehicle_number || plate, data.flaggedAlert.reason);
+    }
+
+    loadLogs();
+  } catch {
+    setStatus({ type:'denied', plate:'', message:'Cannot reach server.\nMake sure "npm start" is running in CMD.' });
+  }
+}
+
+// ── Show discreet flagged banner for gate operator ────────
+function showFlaggedBanner(plate, reason) {
+  document.getElementById('fb-plate').textContent  = plate;
+  document.getElementById('fb-reason').textContent = reason || 'Crime Investigation';
+  const banner = document.getElementById('flagged-banner');
+  banner.style.display = 'block';
+  // Auto-dismiss after 30 seconds
+  setTimeout(() => { banner.style.display = 'none'; }, 30000);
+}
+
+// ── Status display ────────────────────────────────────────
+function setStatus({ type, plate, message }) {
+  const box = document.getElementById('status');
+  box.className = type || '';
+  const icon  = type==='granted'?'✅':type==='denied'?'🚫':type==='scanning'?'⏳':'🚗';
+  const label = type==='granted'?'Access Granted':type==='denied'?'Access Denied':type==='scanning'?'Checking…':'Awaiting Scan';
+  box.innerHTML = `
+    <div class="s-icon pulse">${icon}</div>
+    <div class="s-label ${type||''}">${label}</div>
+    ${plate?`<div class="s-plate" title="${plate}">${plate}</div>`:''}
+    <div class="s-msg">${(message||'').replace(/\n/g,'<br>')}</div>
+    ${type==='scanning'?`<div class="spinner" style="border-top-color:var(--blue);width:18px;height:18px"></div>`:''}
+  `;
+  if (type === 'granted') playBeep();
+}
+
+function playBeep() {
+  try {
+    const ctx = new(window.AudioContext||window.webkitAudioContext)();
+    [880,1100].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=f;
+      const t=ctx.currentTime+i*.18;
+      g.gain.setValueAtTime(.25,t);
+      g.gain.exponentialRampToValueAtTime(.001,t+.25);
+      o.start(t);o.stop(t+.25);
+    });
+  } catch {}
+}
+
+// ── Entry log ─────────────────────────────────────────────
+async function loadLogs() {
+  try {
+    const data = await (await fetch(`${API}/api/entry-logs`)).json();
+    const tb = document.getElementById('log-body');
+    const logs = data.logs || [];
+    if (!logs.length) { tb.innerHTML='<tr><td colspan="4" class="empty">No entries yet</td></tr>'; return; }
+    tb.innerHTML = logs.map(l => {
+      const cls  = l.status==='Access Granted'?'granted':l.status==='Duplicate Entry'?'duplicate':'denied';
+      const icon = l.status==='Access Granted'?'🟢':l.status==='Duplicate Entry'?'🟡':'🔴';
+      const lbl  = l.status.replace('Access ','');
+      const ts   = new Date(l.timestamp).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      const raw  = (l.detected_text||l.vehicle_number||'').slice(0,15);
+      const flaggedTag = l.flagged ? ' <span style="color:#dc2626;font-size:9px;font-weight:700;vertical-align:middle" title="Flagged Vehicle">🚨</span>' : '';
+      return `<tr class="fade">
+        <td title="${l.vehicle_number}"><span class="mono">${l.vehicle_number}</span>${flaggedTag}</td>
+        <td><span class="det-cell" title="${l.detected_text||''}">${raw}</span></td>
+        <td><span class="chip ${cls}">${icon} ${lbl}</span></td>
+        <td><span class="ts">${ts}</span></td>
+      </tr>`;
+    }).join('');
+  } catch {}
+}
+
+async function clearLogs() {
+  if (!confirm('Clear all entry logs?')) return;
+  try { await fetch(`${API}/api/entry-logs`,{method:'DELETE'}); loadLogs(); } catch {}
+}
+
+// Keyboard shortcuts
+document.getElementById('plate-input').addEventListener('keydown', e => { if(e.key==='Enter') verifyManual(); });
+
+// Init
+window.addEventListener('load', () => {
+  loadLogs();
+  // OCR.space API is cloud-based — no local engine to preload
+  console.log('✅ ParkEase Gate ready — using OCR.space API');
+});
+</script>
+</body>
+</html>

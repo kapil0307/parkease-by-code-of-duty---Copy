@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ParkEase — Admin Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+    }
+    .logo {
+      display: flex; flex-direction: column; align-items: center;
+      margin-bottom: 28px;
+    }
+    .logo-icon {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+    }
+    .logo h1 { font-size: 22px; font-weight: 700; color: #1e293b; }
+    .logo p { font-size: 13px; color: #64748b; margin-top: 2px; }
+    .admin-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #fef3c7; color: #92400e;
+      border: 1px solid #fcd34d;
+      padding: 4px 12px; border-radius: 99px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+      text-transform: uppercase; margin-top: 8px;
+    }
+    label {
+      display: block;
+      font-size: 13px; font-weight: 600; color: #374151;
+      margin-bottom: 6px; margin-top: 16px;
+    }
+    input {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid #e2e8f0; border-radius: 10px;
+      font-size: 14px; font-family: 'DM Sans', sans-serif;
+      color: #1e293b; background: #f8fafc;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+      background: white;
+    }
+    button {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: white; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 700;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer; margin-top: 24px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    button:hover { opacity: 0.92; }
+    button:active { transform: scale(0.99); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .error {
+      background: #fee2e2; border: 1px solid #fca5a5;
+      color: #991b1b; border-radius: 8px;
+      padding: 10px 14px; font-size: 13px;
+      margin-top: 14px; display: none;
+    }
+    .quick-access {
+      margin-top: 18px;
+      padding: 14px 16px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+    }
+    .quick-access-label {
+      font-size: 10px; font-weight: 700; color: #94a3b8;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 10px; text-align: center;
+    }
+    .quick-btn {
+      width: 100%; padding: 10px 14px;
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: white; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 700;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer; margin-top: 0;
+      transition: opacity 0.2s, transform 0.1s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .quick-btn:hover { opacity: 0.88; }
+    .quick-btn:active { transform: scale(0.98); }
+    .back-link {
+      display: block; text-align: center;
+      margin-top: 20px; font-size: 13px; color: #64748b;
+      text-decoration: none;
+    }
+    .back-link span { color: #2563eb; font-weight: 600; cursor: pointer; }
+    .spinner {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white; border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle; margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">🔐</div>
+      <h1>ParkEase</h1>
+      <p>Smart Parking Management System</p>
+      <span class="admin-badge">🛡️ Admin Access</span>
+    </div>
+
+    <form id="adminForm">
+      <label for="email">Admin Email</label>
+      <input type="email" id="email" placeholder="admin@parkease.com" autocomplete="username" />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
+
+      <div class="error" id="errorMsg">Invalid admin credentials. Please try again.</div>
+
+      <button type="submit" id="submitBtn">Sign In as Admin →</button>
+    </form>
+
+    <div class="quick-access">
+      <p class="quick-access-label">⚡ Quick Access</p>
+      <button class="quick-btn" onclick="quickAdminLogin()">🔐 Admin Login</button>
+    </div>
+
+    <a class="back-link" href="/booking">← <span>Back to main login</span></a>
+  </div>
+
+  <script>
+    function quickAdminLogin() {
+      document.getElementById('email').value = 'admin@parkease.com';
+      document.getElementById('password').value = 'Admin@123456';
+      document.getElementById('adminForm').dispatchEvent(new Event('submit'));
+    }
+
+    document.getElementById('adminForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const errorMsg = document.getElementById('errorMsg');
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Signing in...';
+      errorMsg.style.display = 'none';
+
+      setTimeout(() => {
+        // Read users from localStorage (shared with main app, uses 'pe_' prefix)
+        let users = [];
+        try {
+          const raw = localStorage.getItem('pe_users');
+          users = raw ? JSON.parse(raw) : [];
+        } catch(e) {}
+
+        // Always include default admin as fallback (in case main app hasn't initialized yet)
+        const defaultAdmin = { email: 'admin@parkease.com', password: 'Admin@123456', role: 'admin', name: 'Super Admin', id: 'admin1' };
+        const hasDefault = users.some(u => u.id === 'admin1');
+        const allUsers = hasDefault ? users : [...users, defaultAdmin];
+
+        const user = allUsers.find(u => u.email === email && u.password === password && u.role === 'admin');
+
+        if (user) {
+          // Store session and redirect to main app
+          localStorage.setItem('pe_admin_session', JSON.stringify({ user, loginAt: Date.now() }));
+          localStorage.setItem('pe_current_user', JSON.stringify(user));
+          // Redirect to main app which will pick up the session
+          window.location.href = '/booking?admin=1';
+        } else {
+          btn.disabled = false;
+          btn.innerHTML = 'Sign In as Admin →';
+          errorMsg.style.display = 'block';
+        }
+      }, 900);
+    });
+  </script>
+</body>
+</html>

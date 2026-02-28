@@ -1,0 +1,20 @@
+{
+  "name": "parkease-city-parking",
+  "version": "3.0.0",
+  "description": "ParkEase — AI-Powered Smart Parking Management System with Gate Entry & Owner Portal",
+  "main": "parkease-backend-api.js",
+  "scripts": {
+    "start": "node parkease-backend-api.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "form-data": "^4.0.0",
+    "bcrypt": "^5.1.1",
+    "multer": "^1.4.5-lts.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
